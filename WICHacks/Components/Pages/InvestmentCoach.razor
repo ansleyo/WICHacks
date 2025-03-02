@@ -1,0 +1,198 @@
+﻿@page "/investment-coach"
+@rendermode InteractiveServer
+@using Azure.AI.OpenAI;
+@using Azure.Identity;
+@using Microsoft.Extensions.AI;
+
+<div class="container">
+    <div class="row">
+
+        <div class="col-6" style="padding-right: 20px; border-right: 1px solid lightgrey;">
+    
+            <div class="text-center">
+                <h2 style="font-size: 1.1rem; color: #71A5DE; font-weight: bold; margin: 14px 0;">Start With an Investing Goal:</h2>
+            </div>
+
+            <div class="d-flex flex-column align-items-start">
+                <div class="check-container">
+                    <input class="form-check-input" type="checkbox" @bind="isLongTermChecked" id="longTerm">
+                    <label class="form-check-label" for="longTerm">Long-Term</label>
+                </div>
+
+                <div class="check-container">
+                    <input class="form-check-input" type="checkbox" @bind="isBuildingWealthChecked" id="buildingWealth">
+                    <label class="form-check-label" for="buildingWealth">Building Wealth</label>
+                </div>
+
+                <div class="check-container">
+                    <input class="form-check-input" type="checkbox" @bind="isLargePurchaseChecked" id="largePurchase">
+                    <label class="form-check-label" for="largePurchase">Saving For a Large Purchase</label>
+                </div>
+            </div>
+
+          
+            <div class="text-center">
+                <h2 style="font-size: 1.1rem; color: #71A5DE; font-weight: bold; margin: 14px 0;">Set Your Timeline:</h2>
+            </div>
+
+            <div class="d-flex flex-column align-items-start">
+                <div class="check-container">
+                    <input class="form-check-input" type="checkbox" @bind="isTimeline0To1Checked" id="timeline0To1">
+                    <label class="form-check-label" for="timeline0To1">0-1 Years</label>
+                </div>
+
+                <div class="check-container">
+                    <input class="form-check-input" type="checkbox" @bind="isTimeline1To3Checked" id="timeline1To3">
+                    <label class="form-check-label" for="timeline1To3">1-3 Years</label>
+                </div>
+
+                <div class="check-container">
+                    <input class="form-check-input" type="checkbox" @bind="isTimeline3To5Checked" id="timeline3To5">
+                    <label class="form-check-label" for="timeline3To5">3-5 Years</label>
+                </div>
+
+                <div class="check-container">
+                    <input class="form-check-input" type="checkbox" @bind="isTimeline5To10Checked" id="timeline5To10">
+                    <label class="form-check-label" for="timeline5To10">5-10 Years</label>
+                </div>
+
+                <div class="check-container">
+                    <input class="form-check-input" type="checkbox" @bind="isTimeline10PlusChecked" id="timeline10Plus">
+                    <label class="form-check-label" for="timeline10Plus">10+ Years</label>
+                </div>
+            </div>
+
+     
+            <div class="text-center">
+                <h2 style="font-size: 1.1rem; color: #71A5DE; font-weight: bold; margin: 14px 0;">Select Risk:</h2>
+            </div>
+
+            <div class="d-flex flex-column align-items-start">
+                <div class="check-container">
+                    <input class="form-check-input" type="checkbox" @bind="isLowRiskChecked" id="lowRisk">
+                    <label class="form-check-label" for="lowRisk">Low</label>
+                </div>
+
+                <div class="check-container">
+                    <input class="form-check-input" type="checkbox" @bind="isModerateRiskChecked" id="moderateRisk">
+                    <label class="form-check-label" for="moderateRisk">Moderate</label>
+                </div>
+
+                <div class="check-container">
+                    <input class="form-check-input" type="checkbox" @bind="isHighRiskChecked" id="highRisk">
+                    <label class="form-check-label" for="highRisk">High</label>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <h2 style="font-size: 1.1rem; color: #71A5DE; font-weight: bold; margin: 14px 0;">How Much Are You Going to Contribute Weekly?</h2>
+            </div>
+
+            <div class="d-flex align-items-center">
+                <span style="font-size: 1.2rem; margin-right: 8px;">$</span>
+                <input type="number" class="form-control" style="max-width: 100px; text-align: center;" @bind="weeklyContribution" min="0" step="0.01">
+                <span style="font-size: 0.9rem; margin-left: 8px;">per week</span>
+            </div>
+
+
+            <div class="text-center mt-3">
+                <button class="btn" style="background-color: #83B0E1;" @onclick="SendMessage">Get Investment Plan</button>
+            </div>
+        </div>
+
+
+        <div class="col-6">
+            <h3 style="color: #71A5DE; font-size: 1.2rem; font-weight: bold; margin-bottom: 16px; text-align: center;">Investment Plan</h3>
+            <div class="p-3" style="border: 1px solid lightgrey; border-radius: 8px; min-height: 200px; background-color: #f9f9f9; font-size: 0.9rem">
+                    <p>@botResponse</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool isLongTermChecked;
+    private bool isBuildingWealthChecked;
+    private bool isLargePurchaseChecked;
+
+    private bool isTimeline0To1Checked;
+    private bool isTimeline1To3Checked;
+    private bool isTimeline3To5Checked;
+    private bool isTimeline5To10Checked;
+    private bool isTimeline10PlusChecked;
+
+    private bool isLowRiskChecked;
+    private bool isModerateRiskChecked;
+    private bool isHighRiskChecked;
+    private decimal weeklyContribution;
+
+    private MarkupString botResponse; 
+
+    private async Task SendMessage()
+    {
+        var credential = new AzureCliCredential();
+        IChatClient client =
+            new AzureOpenAIClient(
+                new Uri("https://ais-aidemos-eastus2.openai.azure.com"),
+                credential)
+                    .AsChatClient(modelId: "gpt-4o-mini");
+
+        List<ChatMessage> conversation = new List<ChatMessage>
+            {
+                new ChatMessage(ChatRole.System, "You are an investment coach. Based on the user's goals, timeline, risk tolerance, and weekly contribution, provide a customized investment plan in the following format:\n\n" +
+                "**Stocks to Invest In:**\n" +
+                "1. [Stock Name]\n" +
+                "2. [Stock Name]\n" +
+                "3. [Stock Name]\n" +
+                "4. [Stock Name]\n" +
+                "5. [Stock Name]\n\n" +
+                "**Investment Strategy Explanation:**\n" +
+                "[Provide a brief explanation of why the selected stocks and allocation fit the user's investment preferences.]\n\n" +
+                "**Expected Returns:**\n" +
+                "[Give a general estimate of possible returns based on historical trends, emphasizing that past performance is not a guarantee of future results.]\n\n" +
+                "**Risk Considerations:**\n" +
+                "[Highlight potential risks, such as market volatility and economic factors, that could impact the investment strategy.]\n\n" +
+                "Use the information provided by the user to tailor the response accordingly. Keep each explanations 2 sentence max."),
+                new ChatMessage(ChatRole.User, GenerateUserMessage())
+            };
+
+        string rawResponse = string.Empty; 
+
+        await foreach (var update in client.GetStreamingResponseAsync(conversation))
+        {
+            rawResponse += update;
+            botResponse = new MarkupString(ConvertToHtml(rawResponse)); 
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private string GenerateUserMessage()
+    {
+        var goals = new List<string>();
+        if (isLongTermChecked) goals.Add("Long-Term");
+        if (isBuildingWealthChecked) goals.Add("Building Wealth");
+        if (isLargePurchaseChecked) goals.Add("Saving For a Large Purchase");
+
+        var timelines = new List<string>();
+        if (isTimeline0To1Checked) timelines.Add("0-1 Years");
+        if (isTimeline1To3Checked) timelines.Add("1-3 Years");
+        if (isTimeline3To5Checked) timelines.Add("3-5 Years");
+        if (isTimeline5To10Checked) timelines.Add("5-10 Years");
+        if (isTimeline10PlusChecked) timelines.Add("10+ Years");
+
+        var risks = new List<string>();
+        if (isLowRiskChecked) risks.Add("Low");
+        if (isModerateRiskChecked) risks.Add("Moderate");
+        if (isHighRiskChecked) risks.Add("High");
+
+        return $"Goals: {string.Join(", ", goals)}; Timeline: {string.Join(", ", timelines)}; Risk: {string.Join(", ", risks)}; Weekly Contribution: ${weeklyContribution}";
+    }
+
+    private string ConvertToHtml(string response)
+    {
+        return response
+            .Replace("**", "<strong>") 
+            .Replace("\n", "<br>")      
+            .Replace("* ", "• ");       
+    }
+}

@@ -1,0 +1,288 @@
+﻿@page "/budget-coach"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Web
+@using Azure.AI.OpenAI;
+@using Azure.Identity;
+@using Microsoft.Extensions.AI;
+
+<PageTitle>Home</PageTitle>
+
+<div class="container">
+    <div class="row">
+        <div class="col-6 text-center">
+            <h2 style="font-size: 1.5rem; color: #71A5DE; font-weight: bold; margin: 16px 0;">Enter Your Monthly Income/Expenses:</h2>
+        </div>
+        <div class="col-6 text-center">
+            <h2 style="font-size: 1.5rem; color: #71A5DE; font-weight: bold; margin: 16px 0;">Budget Optimizations:</h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6">
+            <label for="monthlyBudget">Monthly Income:</label>
+            <div class="input-group" style="width: 200px;">
+                <span class="input-group-text">$</span>
+                <input type="number" id="monthlyBudget" @bind="monthlyIncome" class="form-control" />
+            </div>
+            <hr style="border-top: 1px solid #83B0E1;" />
+            <label for="rent">Rent:</label>
+            <div class="input-group" style="width: 200px;">
+                <span class="input-group-text">$</span>
+                <input type="number" id="rent" @bind="rent" class="form-control" />
+            </div>
+            <label for="groceries">Groceries:</label>
+            <div class="input-group" style="width: 200px;">
+                <span class="input-group-text">$</span>
+                <input type="number" id="groceries" @bind="groceries" class="form-control" />
+            </div>
+            <label for="gas">Gas:</label>
+            <div class="input-group" style="width: 200px;">
+                <span class="input-group-text">$</span>
+                <input type="number" id="gas" @bind="gas" class="form-control" />
+            </div>
+            <label for="dining">Dining:</label>
+            <div class="input-group" style="width: 200px;">
+                <span class="input-group-text">$</span>
+                <input type="number" id="dining" @bind="dining" class="form-control" />
+            </div>
+            <label for="shopping">Shopping:</label>
+            <div class="input-group" style="width: 200px;">
+                <span class="input-group-text">$</span>
+                <input type="number" id="shopping" @bind="shopping" class="form-control" />
+            </div>
+            <label for="extraSpending">Extra Spending:</label>
+            <div class="input-group" style="width: 200px;">
+                <span class="input-group-text">$</span>
+                <input type="number" id="extraSpending" @bind="extraSpending" class="form-control" />
+            </div>
+            <hr style="border-top: 1px solid #83B0E1;" />
+            <label>Lifestyle Preferences:</label>
+            <div class="d-flex flex-wrap">
+                <div class="form-check me-3">
+                    <input type="checkbox" id="goOutWithFriends" class="form-check-input" @bind="goOutWithFriends" />
+                    <label for="goOutWithFriends" class="form-check-label">Party Animal</label>
+                </div>
+                <div class="form-check me-3">
+                    <input type="checkbox" id="staysHome" class="form-check-input" @bind="staysHome" />
+                    <label for="staysHome" class="form-check-label">Stays Home</label>
+                </div>
+                <div class="form-check me-3">
+                    <input type="checkbox" id="foodFanatic" class="form-check-input" @bind="foodFanatic" />
+                    <label for="foodFanatic" class="form-check-label">Food Fanatic</label>
+                </div>
+            </div>
+            <div class="col-12">
+                <hr style="border-top: 1px solid #83B0E1;" />
+                <button class="btn" style="background-color: #83B0E1;" @onclick="SaveIncome">Save</button>
+            </div>
+        </div>
+        <div class="col-6" style="border-left: 1px solid #83B0E1;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Optimized Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Groceries</td>
+                        <td>@groceriesOptimization</td>
+                    </tr>
+                    <tr>
+                        <td>Gas</td>
+                        <td>@gasOptimization</td>
+                    </tr>
+                    <tr>
+                        <td>Dining</td>
+                        <td>@diningOptimization</td>
+                    </tr>
+                    <tr>
+                        <td>Shopping</td>
+                        <td>@shoppingOptimization</td>
+                    </tr>
+                    <tr>
+                        <td>Extra Spending</td>
+                        <td>@extraSpendingOptimization</td>
+                    </tr>
+                    <tr>
+                        <td>Savings</td>
+                        <td>@savingsOptimization</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="d-flex align-items-center justify-content-center">
+                <h3 style="font-size: 1.5rem; color: #71A5DE; font-weight: bold; margin: 16px 0;">Chat with Benny the Budget Bot</h3>
+            </div>
+            <div class="chat-container">
+                <div class="chat-box">
+                    <div class="chat-log" style="height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+                        @foreach (var message in chatMessages)
+                        {
+                            <div class="@(message.IsUser ? "user-message" : "bot-message")">
+                                <strong>@(message.IsUser ? "You: " : "Coach: ")</strong>@message.Text
+                            </div>
+                        }
+                    </div>
+                    <div class="chat-input mt-2">
+                        <input type="text" @bind="chatBotUserMessage" placeholder="Type your message..." class="form-control" @onkeypress="HandleEnterKey" />
+                        <button class="btn" style="background-color: #83B0E1; margin-top: 20px" @onclick="SendChatBotMessage">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+    private decimal monthlyIncome;
+    private decimal rent;
+    private decimal groceries;
+    private decimal gas;
+    private decimal dining;
+    private decimal shopping;
+    private decimal extraSpending;
+    private decimal savedIncome;
+
+    private string groceriesOptimization = string.Empty;
+    private string gasOptimization = string.Empty;
+    private string diningOptimization = string.Empty;
+    private string shoppingOptimization = string.Empty;
+    private string extraSpendingOptimization = string.Empty;
+    private string savingsOptimization = string.Empty;
+
+    private bool goOutWithFriends;
+    private bool staysHome;
+    private bool foodFanatic;
+    private bool driver;
+
+    private List<ChatMessageModel> chatMessages = new();
+    private string chatBotUserMessage = string.Empty;
+    private AzureOpenAIClient chatClient;
+
+    private void OptimizeBudget()
+    {
+        int remainingIncome = (int)(monthlyIncome - rent);
+        if (remainingIncome <= 0)
+        {
+            groceriesOptimization = gasOptimization = diningOptimization = shoppingOptimization = extraSpendingOptimization = savingsOptimization = "$0";
+            return;
+        }
+
+
+        int savings = remainingIncome * 30 / 100;
+        remainingIncome -= savings;
+
+        int groceriesBudget = remainingIncome * 15 / 100;
+        int gasBudget = (int)gas; 
+        int diningBudget = remainingIncome * 15 / 100;
+        int shoppingBudget = remainingIncome * 10 / 100;
+        int extraSpendingBudget = remainingIncome * 15 / 100;
+
+
+        if (goOutWithFriends)
+        {
+            int adjustment = remainingIncome * 5 / 100;
+            extraSpendingBudget += adjustment;
+            savings -= adjustment; 
+        }
+
+        if (foodFanatic)
+        {
+            int adjustment = remainingIncome * 5 / 100;
+            groceriesBudget += adjustment;
+            diningBudget += adjustment;
+            extraSpendingBudget -= adjustment * 2; 
+        }
+        
+        if (staysHome)
+        {
+            int adjustment = remainingIncome * 5 / 100;
+            diningBudget -= adjustment;
+            extraSpendingBudget -= adjustment;
+            savings += adjustment * 2; 
+        }
+
+        if (driver)
+        {
+            gasBudget = (int)gas;
+        }
+
+        int totalAllocated = groceriesBudget + gasBudget + diningBudget + shoppingBudget + extraSpendingBudget + savings;
+        int difference = remainingIncome - totalAllocated;
+
+        savings += difference; 
+
+        groceriesOptimization = $"${groceriesBudget}";
+        gasOptimization = $"${gasBudget}";
+        diningOptimization = $"${diningBudget}";
+        shoppingOptimization = $"${shoppingBudget}";
+        extraSpendingOptimization = $"${extraSpendingBudget}";
+        savingsOptimization = $"${savings}";
+    }
+
+
+
+
+    private async Task SendChatBotMessage()
+    {
+        var credential = new AzureCliCredential();
+        IChatClient client =
+            new AzureOpenAIClient(
+                new Uri("https://ais-aidemos-eastus2.openai.azure.com"),
+                credential)
+                    .AsChatClient(modelId: "gpt-4o-mini");
+
+        if (string.IsNullOrWhiteSpace(chatBotUserMessage)) return;
+
+ 
+        chatMessages.Add(new ChatMessageModel { Text = chatBotUserMessage, IsUser = true });
+
+ 
+        string userMessageFormatted = chatBotUserMessage; 
+
+        List<ChatMessage> conversation = new()
+        {
+            new ChatMessage(ChatRole.System, $"You are a helpful budget coach. Respond concisely. Current budget: Monthly Income: ${monthlyIncome}, Rent: ${rent}, Groceries: ${groceries}, Gas: ${gas}, Dining: ${dining}, Shopping: ${shopping}, Extra Spending: ${extraSpending}. Optimizations: Groceries: {groceriesOptimization}, Gas: {gasOptimization}, Dining: {diningOptimization}, Shopping: {shoppingOptimization}, Extra Spending: {extraSpendingOptimization}, Savings: {savingsOptimization}. Don't add bold font and keep it to a 3 sentence max."),
+            new ChatMessage(ChatRole.User, userMessageFormatted)
+        };
+
+        chatBotUserMessage = string.Empty; 
+        InvokeAsync(StateHasChanged);
+
+        // AI response handling
+        string botResponse = "";
+        await foreach (var update in client.GetStreamingResponseAsync(conversation))
+        {
+            botResponse += update;
+            InvokeAsync(StateHasChanged);
+        }
+
+        chatMessages.Add(new ChatMessageModel { Text = botResponse, IsUser = false });
+
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void HandleEnterKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            _ = SendChatBotMessage();
+        }
+    }
+
+    private class ChatMessageModel
+    {
+        public string Text { get; set; }
+        public bool IsUser { get; set; }
+    }
+
+    private void SaveIncome()
+    {
+        savedIncome = monthlyIncome;
+        OptimizeBudget();
+    }
+}
+

@@ -1,0 +1,30 @@
+﻿@inherits LayoutComponentBase
+
+<div class="page">
+
+   <main>
+        <div class="top-row px-4" style="text-align: center; display: flex; justify-content: center; height: 100px; align-items: center; background-color: #E1ECF7;">
+            <span style="margin: 0 20px; position: absolute; left: 20px; font-weight: bold; font-size: 1.8em;">ScholarSavings</span>  
+            <NavLink href="/how-it-works" class="nav-link" active-class="active" style="margin: 0 20px;">How It Works</NavLink>  
+            <NavLink href="/budget-coach" class="nav-link" active-class="active" style="margin: 0 20px;">Budget Coach</NavLink>  
+            <NavLink href="/investment-coach" class="nav-link" active-class="active" style="margin: 0 20px;">Investment Coach</NavLink>  
+       </div>
+
+       <article class="content px-4">
+           @Body
+       </article>
+   </main>
+</div>
+
+<div id="blazor-error-ui">
+   An unhandled error has occurred.
+   <a href="" class="reload">Reload</a>
+   <a class="dismiss">🗙</a>
+</div>
+
+<style>
+    .nav-link.active {
+        font-weight: bold;
+        color: #007bff;
+    }
+</style>
