@@ -249,20 +249,20 @@
         };
 
         chatBotUserMessage = string.Empty; 
-        InvokeAsync(StateHasChanged);
+        await InvokeAsync(StateHasChanged);
 
-        // AI response handling
+
         string botResponse = "";
         await foreach (var update in client.GetStreamingResponseAsync(conversation))
         {
             botResponse += update;
-            InvokeAsync(StateHasChanged);
+            await InvokeAsync(StateHasChanged);
         }
 
         chatMessages.Add(new ChatMessageModel { Text = botResponse, IsUser = false });
 
 
-        InvokeAsync(StateHasChanged);
+        await InvokeAsync(StateHasChanged);
     }
 
     private void HandleEnterKey(KeyboardEventArgs e)

@@ -94,7 +94,7 @@ h1:focus {
 .blue-shade {
     border: 1px solid #83B0E1;
     padding: 5px;
-    background-color: #f0f8ff; /* Light blue background */
+    background-color: #f0f8ff; 
     margin-bottom: 20px;
 }
 
@@ -105,7 +105,7 @@ h1:focus {
     padding: 4px;
     width: 400px;
     margin-bottom: 3px;
-    box-shadow: 0 0 10px 0 rgba(173, 216, 230, 0.5); /* Super light blue shadow */
+    box-shadow: 0 0 10px 0 rgba(173, 216, 230, 0.5); 
 }
 
 .form-check-input {
@@ -115,16 +115,15 @@ h1:focus {
 }
 
 .d-flex {
-    margin-left: 0; /* Ensures alignment to the left */
+    margin-left: 0;
 }
 
 .form-check-input:checked {
     background-color: #83B0E1; /* Blue background when checked */
-    border: 2px solid #0056b3; /* Darker blue border */
+    border: 2px solid #0056b3; 
 }
 
-/* Container Styling */
-/* Animated Background */
+
 @keyframes gradientAnimation {
     0% {
         background-position: 0% 50%;
@@ -289,32 +288,32 @@ h1:focus {
 
 .button-link {
     display: inline-block;
-    background-color: #0077b6; /* Use your primary color */
+    background-color: #0077b6; 
     color: white;
-    padding: 16px 32px; /* Bigger padding for a larger button */
-    font-size: 1.5rem; /* Increase font size */
+    padding: 16px 32px; 
+    font-size: 1.5rem; 
     font-weight: bold;
     text-align: center;
     text-decoration: none;
-    border-radius: 12px; /* Rounded corners */
-    border: 2px solid transparent; /* Smooth border */
+    border-radius: 12px; 
+    border: 2px solid transparent; 
     cursor: pointer;
     transition: all 0.3s ease-in-out;
 }
 
     .button-link:hover {
-        background-color: #005f8a; /* Darker shade on hover */
-        border-color: #ffffff; /* Add a white border on hover */
+        background-color: #005f8a; 
+        border-color: #ffffff;
     }
 
     .button-link.active {
-        background-color: #003f5c; /* Even darker blue when active */
+        background-color: #003f5c;
         border-color: #ffffff;
     }
 
 
 .step {
-    background-color: #E8F1FA; /* Light blue background */
+    background-color: #E8F1FA; 
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 40px;
@@ -322,7 +321,7 @@ h1:focus {
 }
 
     .step h2 {
-        color: #006bb7; /* Deep blue */
+        color: #006bb7; 
         font-size: 1.5rem;
         margin-bottom: 10px;
     }

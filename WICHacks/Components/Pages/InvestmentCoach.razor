@@ -162,7 +162,7 @@
         {
             rawResponse += update;
             botResponse = new MarkupString(ConvertToHtml(rawResponse)); 
-            InvokeAsync(StateHasChanged);
+            await InvokeAsync(StateHasChanged);
         }
     }
 
